@@ -13,11 +13,11 @@ import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import java.io.*
+import java.lang.StringBuilder
+import java.nio.charset.Charset
 //import jdk.nashorn.internal.objects.ArrayBufferView.buffer
 //import sun.security.krb5.Confounder.bytes
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
 import java.util.*
 
 
@@ -186,19 +186,25 @@ class MainActivity : AppCompatActivity() {
 
         Thread(Runnable {
             var numBytes: Int
+            var str: String = ""
             while (true) {
                 try {
-                    numBytes = mInput!!.read(mmBuffer)
+                    numBytes = mInput!!.read(mmBuffer, 0, 512)
                     val readMessage: String = String(mmBuffer, 0, numBytes)
-                    Log.d("#main_rcv", "$numBytes $readMessage")
+                    str += readMessage
+                    if (str[str.lastIndex] == '^'){
+                        Log.d("#main_rcv", str)
+                        str = ""
+                    }
+//                    Log.d("#main_rcv", "$numBytes $readMessage")
                 } catch (e: IOException) {
                     Log.d("#main_rcv", "Input stream was disconnected", e)
                     break
                 }
             }
-
         }).start()
     }
+
 
     override fun onDestroy() {
         super.onDestroy()
