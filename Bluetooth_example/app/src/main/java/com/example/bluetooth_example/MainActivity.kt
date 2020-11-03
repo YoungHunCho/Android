@@ -167,7 +167,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.btn_rcv).setOnClickListener{
-            start_rcv()
+//            start_rcv()
+            val intent: Intent = Intent(this, ReceiveActivity::class.java)
+        intent.putExtra("device", DEVICE)
+            startActivity(intent)
         }
 
         createNotificationChannel()
