@@ -9,29 +9,31 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.os.Message
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+//import jdk.nashorn.internal.objects.ArrayBufferView.buffer
+//import sun.security.krb5.Confounder.bytes
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.*
-import kotlin.text.Charsets.UTF_8
 
 
 // http://jinyongjeong.github.io/2018/09/27/bluetoothpairing/
 
 class MainActivity : AppCompatActivity() {
     private val DEVICE_NAME = "HC-06"
+    private var DEVICE: BluetoothDevice? = null
     private var status = 0
     private var mBluetoothAdapter: BluetoothAdapter? = null
     private val stateFilter = IntentFilter()
     private var tv_status: TextView? = null
     private var pairedDevices: Set<BluetoothDevice>? = null
     private val REQUEST_ENABLE_BT = 1000
+
+
 
     private val mBluetoothStateReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
@@ -68,10 +70,17 @@ class MainActivity : AppCompatActivity() {
                 BluetoothDevice.ACTION_FOUND -> {
                     val device_name = device!!.name
                     val device_Address = device.address
+                    if (device_name == DEVICE_NAME) {
+                        DEVICE = device
+                    }
                     Log.d("#main_device", "$device_name $device_Address")
 
                 }
                 BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> {
+                    if (DEVICE != null) {
+                        DEVICE!!.createBond()
+                        set_status(4)
+                    }
                     Log.d("#main_Bluetooth", "Call Discovery finished")
                 }
                 BluetoothDevice.ACTION_PAIRING_REQUEST -> {
@@ -129,8 +138,13 @@ class MainActivity : AppCompatActivity() {
         pairedDevices?.forEach { device ->
             val deviceName = device.name
             val deviceHardwareAddress = device.address // MAC address
-            if (deviceName == DEVICE_NAME) set_status(4)
+            if (deviceName == DEVICE_NAME) {
+                set_status(4)
+                DEVICE = device
+            }
         }
+//        val BluetoothDevice
+//        pairedDevices.contains()
 
         findViewById<Button>(R.id.btn_on_off).setOnClickListener{
             if (status == 1){
@@ -146,13 +160,54 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.btn_rcv).setOnClickListener{
-//            mBluetoothAdapter!!.startDiscovery() //블루투스 기기 검색 시작
+            start_rcv()
         }
+    }
+
+    // https://developer.android.com/guide/topics/connectivity/bluetooth?hl=ko#ConnectDevices
+    private var mBtSoket: BluetoothSocket? = null
+    private var mInput: InputStream? = null
+    private var mOutput: OutputStream? = null
+    private var mmBuffer: ByteArray = ByteArray(555)
+
+    private fun start_rcv(){
+        Log.d("#main_rcv", "start")
+        val uuid = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb")
+        try{
+            mBtSoket = DEVICE!!.createRfcommSocketToServiceRecord(uuid)
+            mBtSoket!!.connect()
+            Log.d("#main_rcv", "socket connect")
+
+            mInput = mBtSoket!!.inputStream
+            mOutput = mBtSoket!!.outputStream
+        }catch (e: Exception){
+            e.printStackTrace()
+        }
+
+        Thread(Runnable {
+            var numBytes: Int
+            while (true) {
+                try {
+                    numBytes = mInput!!.read(mmBuffer)
+                    val readMessage: String = String(mmBuffer, 0, numBytes)
+                    Log.d("#main_rcv", "$numBytes $readMessage")
+                } catch (e: IOException) {
+                    Log.d("#main_rcv", "Input stream was disconnected", e)
+                    break
+                }
+            }
+
+        }).start()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(mBluetoothStateReceiver);
+        try{
+            mBtSoket!!.close()
+        }catch (e: Exception){
+            e.printStackTrace()
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
