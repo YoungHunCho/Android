@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Bluetooth_example</string>
+    <string name="channel_name">my_channel</string>
+    <string name="channel_description">channel_test</string>
 </resources>

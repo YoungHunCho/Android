@@ -1,6 +1,10 @@
 package com.example.bluetooth_example
 
+//import jdk.nashorn.internal.objects.ArrayBufferView.buffer
+//import sun.security.krb5.Confounder.bytes
 import android.app.Activity
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
@@ -8,16 +12,19 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.BitmapFactory
+import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import java.io.*
-import java.lang.StringBuilder
-import java.nio.charset.Charset
-//import jdk.nashorn.internal.objects.ArrayBufferView.buffer
-//import sun.security.krb5.Confounder.bytes
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 import java.util.*
 
 
@@ -162,6 +169,8 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btn_rcv).setOnClickListener{
             start_rcv()
         }
+
+        createNotificationChannel()
     }
 
     // https://developer.android.com/guide/topics/connectivity/bluetooth?hl=ko#ConnectDevices
@@ -170,9 +179,14 @@ class MainActivity : AppCompatActivity() {
     private var mOutput: OutputStream? = null
     private var mmBuffer: ByteArray = ByteArray(555)
 
+
+
+
+
     private fun start_rcv(){
         Log.d("#main_rcv", "start")
         val uuid = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb")
+
         try{
             mBtSoket = DEVICE!!.createRfcommSocketToServiceRecord(uuid)
             mBtSoket!!.connect()
@@ -192,8 +206,12 @@ class MainActivity : AppCompatActivity() {
                     numBytes = mInput!!.read(mmBuffer, 0, 512)
                     val readMessage: String = String(mmBuffer, 0, numBytes)
                     str += readMessage
-                    if (str[str.lastIndex] == '^'){
+                    if (str[str.lastIndex] == '^') {
+                        str = str.substring(0, str.lastIndex)
                         Log.d("#main_rcv", str)
+                        if (str.subSequence(0, 6).toString().trim().toInt() % 10 == 0) {
+                            NotificationSomethings(str.substring(7,str.lastIndex))
+                        }
                         str = ""
                     }
 //                    Log.d("#main_rcv", "$numBytes $readMessage")
@@ -205,6 +223,38 @@ class MainActivity : AppCompatActivity() {
         }).start()
     }
 
+    // https://developer.android.com/training/notify-user/build-notification?hl=ko
+    private val CHANNEL_ID = "cho"
+    private fun NotificationSomethings(str: String) {
+        var builder = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_menu_search)
+            .setContentTitle("test")
+            .setContentText(str)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+
+
+        with(NotificationManagerCompat.from(this)) {
+            // notificationId is a unique int for each notification that you must define
+            notify(10, builder.build())
+        }
+    }
+
+    private fun createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = getString(R.string.channel_name)
+            val descriptionText = getString(R.string.channel_description)
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
+                description = descriptionText
+            }
+            // Register the channel with the system
+            val notificationManager: NotificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
 
     override fun onDestroy() {
         super.onDestroy()
