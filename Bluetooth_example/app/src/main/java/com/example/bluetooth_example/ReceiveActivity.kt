@@ -84,10 +84,18 @@ class ReceiveActivity : AppCompatActivity() {
                     if (str[str.lastIndex] == '^') {
                         Log.d("#main_rcv", str)
                         str = str.substring(0, str.lastIndex)
-                        val time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+//                        val time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
                         val items = str.split("$")[1].split(",")
+                        // 현재시간을 msec 으로 구한다.
+    val now: Long = System.currentTimeMillis();
+    // 현재시간을 date 변수에 저장한다.
+    val date:Date = Date(now);
+    // 시간을 나타냇 포맷을 정한다 ( yyyy/MM/dd 같은 형태로 변형 가능 )
+    val sdfNow: SimpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
-                        ItemList.add(Item(items[1].toDouble(), items[2].toDouble(), items[3].toDouble(), items[4].toDouble(), time))
+
+
+                        ItemList.add(Item(items[1].toDouble(), items[2].toDouble(), items[3].toDouble(), items[4].toDouble(), sdfNow.format(date)))
                         runOnUiThread{
                             mAdapter!!.notifyDataSetChanged()
                             rcv_list.scrollToPosition(ItemList.size - 1)
