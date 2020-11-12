@@ -78,9 +78,6 @@ class MainActivity : AppCompatActivity(), BeaconConsumer, AutoPermissionsListene
 
 
     override fun onPointerCaptureChanged(hasCapture: Boolean) {}
-    override fun onDenied(requestCode: Int, permissions: Array<String>) {
-    }
-
-    override fun onGranted(requestCode: Int, permissions: Array<String>) {
-    }
+    override fun onDenied(requestCode: Int, permissions: Array<String>) {}
+    override fun onGranted(requestCode: Int, permissions: Array<String>) {}
 }

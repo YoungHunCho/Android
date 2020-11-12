@@ -8,7 +8,7 @@ android {
     buildToolsVersion "30.0.2"
 
     defaultConfig {
-        applicationId "com.example.beacon_example"
+        applicationId "com.example.beacon_scan"
         minSdkVersion 24
         targetSdkVersion 30
         versionCode 1
