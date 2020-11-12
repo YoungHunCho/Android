@@ -1,4 +1,4 @@
-package com.example.beacon_example
+package com.example.beacon
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

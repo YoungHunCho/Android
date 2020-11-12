@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.beacon_example">
+    package="com.example.beacon">
 
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
@@ -18,7 +18,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Beacon_example">
-        <activity android:name=".MainActivity">
+        <activity android:name="com.example.beacon.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
